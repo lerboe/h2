@@ -181,6 +181,12 @@ where
         self.inner.streams.num_wired_streams()
     }
 
+    /// BEELINE PATCH: applies `block` to the decoder's dynamic table, see
+    /// [`crate::hpack::Decoder::prime`].
+    pub fn prime_recv_hpack(&mut self, block: &[u8]) -> Result<(), crate::hpack::DecoderError> {
+        self.codec.prime_recv_hpack(block)
+    }
+
     /// Returns `Ready` when the connection is ready to receive a frame.
     ///
     /// Returns `Error` as this may raise errors that are caused by delayed

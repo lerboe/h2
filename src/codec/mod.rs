@@ -8,6 +8,7 @@ use self::framed_read::FramedRead;
 use self::framed_write::FramedWrite;
 
 use crate::frame::{self, Data, Frame};
+use crate::hpack;
 use crate::proto::Error;
 
 use bytes::Buf;
@@ -103,6 +104,12 @@ impl<T, B> Codec<T, B> {
     /// Set the max header list size that can be received.
     pub fn set_max_recv_header_list_size(&mut self, val: usize) {
         self.inner.set_max_header_list_size(val);
+    }
+
+    /// BEELINE PATCH: applies `block` to the decoder's dynamic table, see
+    /// [`hpack::Decoder::prime`].
+    pub fn prime_recv_hpack(&mut self, block: &[u8]) -> Result<(), hpack::DecoderError> {
+        self.inner.prime_hpack(block)
     }
 
     /// Get a reference to the inner stream.

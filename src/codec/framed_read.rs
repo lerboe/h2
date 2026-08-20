@@ -105,6 +105,12 @@ impl<T> FramedRead<T> {
     pub fn set_header_table_size(&mut self, val: usize) {
         self.hpack.queue_size_update(val);
     }
+
+    /// BEELINE PATCH: applies `block` to the decoder's dynamic table, see
+    /// [`hpack::Decoder::prime`].
+    pub fn prime_hpack(&mut self, block: &[u8]) -> Result<(), hpack::DecoderError> {
+        self.hpack.prime(block)
+    }
 }
 
 fn calc_max_continuation_frames(header_max: usize, frame_max: usize) -> usize {

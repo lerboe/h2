@@ -465,6 +465,33 @@ where
         self.connection.set_target_window_size(size);
     }
 
+    /// BEELINE PATCH: applies `block`, a raw HPACK header block, to this
+    /// connection's dynamic table without surfacing the fields it carries.
+    ///
+    /// A server that sits behind beeline's example fast path does not see
+    /// every request its client sends: the ones the fast path answers in the
+    /// kernel never reach it. Those requests still changed the client's
+    /// dynamic table, though, and the client keeps encoding against it, so the
+    /// server's decoder has to be told what it missed or every later indexed
+    /// field resolves to the wrong header.
+    ///
+    /// `block` is the header block of the requests that were answered without
+    /// the server, so replaying it puts the two tables back in step. The fields
+    /// are dropped, only their effect on the table is kept.
+    ///
+    /// This is a deliberate hack for that example and no part of h2's
+    /// supported surface.
+    pub fn prime_dynamic_table(
+        &mut self,
+        block: &[u8],
+    ) -> Result<(), crate::hpack::DecoderError> {
+        // the decoder's own error is handed back rather than folded into a
+        // connection error: which way the block failed to decode is the only
+        // thing that says what is wrong with it, and a bare COMPRESSION_ERROR
+        // throws that away
+        self.connection.prime_recv_hpack(block)
+    }
+
     /// Set a new `INITIAL_WINDOW_SIZE` setting (in octets) for stream-level
     /// flow control for received data.
     ///
