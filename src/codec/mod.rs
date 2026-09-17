@@ -106,7 +106,7 @@ impl<T, B> Codec<T, B> {
         self.inner.set_max_header_list_size(val);
     }
 
-    /// BEELINE PATCH: applies `block` to the decoder's dynamic table, see
+    /// BEEPER PATCH: applies `block` to the decoder's dynamic table, see
     /// [`hpack::Decoder::prime`].
     pub fn prime_recv_hpack(&mut self, block: &[u8]) -> Result<(), hpack::DecoderError> {
         self.inner.prime_hpack(block)

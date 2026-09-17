@@ -127,6 +127,13 @@ where
             .set_target_connection_window(size, &mut me.actions.task)
     }
 
+    /// BEEPER PATCH: see [`super::prioritize::Prioritize::consume_send_capacity`].
+    pub fn consume_send_capacity(&mut self, sz: WindowSize) -> Result<(), Reason> {
+        let mut me = self.inner.lock().unwrap();
+
+        me.actions.send.consume_send_capacity(sz)
+    }
+
     pub fn next_incoming(&mut self) -> Option<StreamRef<B>> {
         let mut me = self.inner.lock().unwrap();
         let me = &mut *me;

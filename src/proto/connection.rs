@@ -181,7 +181,13 @@ where
         self.inner.streams.num_wired_streams()
     }
 
-    /// BEELINE PATCH: applies `block` to the decoder's dynamic table, see
+    /// BEEPER PATCH: takes `sz` bytes out of the connection's send window,
+    /// see [`super::streams::prioritize::Prioritize::consume_send_capacity`].
+    pub fn consume_send_capacity(&mut self, sz: WindowSize) -> Result<(), Reason> {
+        self.inner.streams.consume_send_capacity(sz)
+    }
+
+    /// BEEPER PATCH: applies `block` to the decoder's dynamic table, see
     /// [`crate::hpack::Decoder::prime`].
     pub fn prime_recv_hpack(&mut self, block: &[u8]) -> Result<(), crate::hpack::DecoderError> {
         self.codec.prime_recv_hpack(block)

@@ -173,7 +173,7 @@ impl Decoder {
         self.max_size_update = Some(size);
     }
 
-    /// BEELINE PATCH: applies `block` to the dynamic table without emitting
+    /// BEEPER PATCH: applies `block` to the dynamic table without emitting
     /// the header fields it carries.
     ///
     /// This exists so that a server whose requests are partly answered before
@@ -615,7 +615,7 @@ impl Table {
 
 // ===== impl DecoderError =====
 
-// BEELINE PATCH: `prime_dynamic_table` hands this back, so it has to be
+// BEEPER PATCH: `prime_dynamic_table` hands this back, so it has to be
 // reportable like any other error a caller propagates.
 impl std::fmt::Display for DecoderError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

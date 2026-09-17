@@ -110,7 +110,7 @@ macro_rules! ready {
 #[cfg_attr(feature = "unstable", allow(missing_docs))]
 mod codec;
 mod error;
-// BEELINE PATCH: `DecoderError` is handed out by
+// BEEPER PATCH: `DecoderError` is handed out by
 // `server::Connection::prime_dynamic_table`, so the module has to be public.
 // It was internal, and documenting all of it is no part of this patch.
 #[allow(missing_docs)]

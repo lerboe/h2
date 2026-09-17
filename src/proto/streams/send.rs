@@ -428,6 +428,11 @@ impl Send {
         }
     }
 
+    /// BEEPER PATCH: see [`Prioritize::consume_send_capacity`].
+    pub fn consume_send_capacity(&mut self, sz: WindowSize) -> Result<(), Reason> {
+        self.prioritize.consume_send_capacity(sz)
+    }
+
     pub fn recv_connection_window_update(
         &mut self,
         frame: frame::WindowUpdate,

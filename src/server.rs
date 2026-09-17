@@ -465,7 +465,28 @@ where
         self.connection.set_target_window_size(size);
     }
 
-    /// BEELINE PATCH: applies `block`, a raw HPACK header block, to this
+    /// BEEPER PATCH: takes `sz` bytes out of this connection's send window
+    /// without sending them.
+    ///
+    /// A server that sits behind beeline's example fast path does not write
+    /// every response its client receives: the ones the fast path answers are
+    /// written by the kernel, straight onto the socket. They spend the peer's
+    /// connection window all the same, so h2 has to be told about them or it
+    /// keeps sending against a window the peer has already closed.
+    ///
+    /// The stream those bytes went out on is none of this connection's
+    /// business -- it never saw the request, so it never opened the stream --
+    /// and only the connection level window is shared.
+    ///
+    /// This is a deliberate hack for that example and no part of h2's
+    /// supported surface.
+    pub fn consume_send_capacity(&mut self, sz: u32) -> Result<(), crate::Error> {
+        self.connection
+            .consume_send_capacity(sz)
+            .map_err(crate::Error::from)
+    }
+
+    /// BEEPER PATCH: applies `block`, a raw HPACK header block, to this
     /// connection's dynamic table without surfacing the fields it carries.
     ///
     /// A server that sits behind beeline's example fast path does not see

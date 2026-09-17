@@ -106,7 +106,7 @@ impl<T> FramedRead<T> {
         self.hpack.queue_size_update(val);
     }
 
-    /// BEELINE PATCH: applies `block` to the decoder's dynamic table, see
+    /// BEEPER PATCH: applies `block` to the decoder's dynamic table, see
     /// [`hpack::Decoder::prime`].
     pub fn prime_hpack(&mut self, block: &[u8]) -> Result<(), hpack::DecoderError> {
         self.hpack.prime(block)

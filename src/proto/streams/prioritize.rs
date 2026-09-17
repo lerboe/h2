@@ -312,6 +312,28 @@ impl Prioritize {
         Ok(())
     }
 
+    /// BEEPER PATCH: takes `sz` bytes out of the connection's send window
+    /// without sending anything, for data that reached the peer without
+    /// passing through this connection.
+    ///
+    /// A server that sits behind beeline's example fast path does not write
+    /// every response its client receives: the ones the fast path answers are
+    /// written by the kernel, straight onto the socket. They spend the peer's
+    /// connection window all the same, so h2 has to be told about them or it
+    /// keeps sending against a window the peer has already closed.
+    ///
+    /// The window the peer knows about and the capacity left to hand out to
+    /// streams both shrink by `sz`. The latter may already have been handed
+    /// out, in which case it goes negative and the streams holding it wait for
+    /// the peer to reopen the window, see `pop_frame`.
+    ///
+    /// This is a deliberate hack for that example and no part of h2's
+    /// supported surface.
+    pub fn consume_send_capacity(&mut self, sz: WindowSize) -> Result<(), Reason> {
+        self.flow.dec_send_window(sz)?;
+        self.flow.claim_capacity(sz)
+    }
+
     pub fn recv_connection_window_update(
         &mut self,
         inc: WindowSize,
@@ -789,9 +811,17 @@ impl Prioritize {
                             let len =
                                 cmp::min(len, stream_capacity.as_size() as usize) as WindowSize;
 
-                            // There *must* be be enough connection level
-                            // capacity at this point.
-                            debug_assert!(len <= self.flow.window_size());
+                            // BEEPER PATCH: the capacity assigned to this
+                            // stream can outrun the connection window the peer
+                            // knows about, as `consume_send_capacity` shrinks
+                            // that window under data h2 never sent itself. the
+                            // frame waits for the peer to reopen it rather than
+                            // overrunning it.
+                            if len > 0 && len > self.flow.window_size() {
+                                stream.pending_send.push_front(buffer, frame.into());
+                                self.pending_capacity.push(&mut stream);
+                                continue;
+                            }
 
                             // Check if the stream level window the peer knows is available. In some
                             // scenarios, maybe the window we know is available but the window which
